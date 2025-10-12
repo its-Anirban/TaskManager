@@ -2,29 +2,26 @@ package com.example.taskManager.controller;
 
 import com.example.taskManager.model.Task;
 import com.example.taskManager.services.TaskService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class TaskControllerTest {
-
-    private MockMvc mockMvc;
 
     @Mock
     private TaskService taskService;
@@ -32,53 +29,97 @@ class TaskControllerTest {
     @InjectMocks
     private TaskController taskController;
 
-    private ObjectMapper objectMapper;
+    @Test
+    void createTask_returnsCreatedResponse() {
+        Task in = new Task();
+        in.setTitle("New Task");
 
-    @BeforeEach
-    void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(taskController).build();
-        objectMapper = new ObjectMapper();
+        Task saved = new Task();
+        saved.setId(1L);
+        saved.setTitle("New Task");
+
+        when(taskService.createTask(any(Task.class))).thenReturn(saved);
+
+        ResponseEntity<Task> resp = taskController.createTask(in);
+
+        assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+        // use requireNonNull so static analyzers know body is non-null
+        Task body = Objects.requireNonNull(resp.getBody(), "Response body should not be null for created task");
+        assertEquals(1L, body.getId());
+        verify(taskService, times(1)).createTask(any(Task.class));
     }
 
     @Test
-    void shouldCreateTask() throws Exception {
-        Task task = new Task();
-        task.setId(1L);
-        task.setTitle("Create API Test");
-        task.setDescription("Testing POST endpoint");
+    void getAllTasks_returnsList() {
+        Task t = new Task();
+        t.setId(1L);
+        t.setTitle("T1");
 
-        when(taskService.createTask(any(Task.class))).thenReturn(task);
+        when(taskService.getAllTasks()).thenReturn(Collections.singletonList(t));
 
-        mockMvc.perform(post("/api/tasks")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(task)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Create API Test"));
+        ResponseEntity<List<Task>> resp = taskController.getAllTasks();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        List<Task> result = Objects.requireNonNull(resp.getBody(), "Response body should not be null for getAllTasks");
+        assertEquals(1, result.size());
+        assertEquals("T1", result.get(0).getTitle());
+        verify(taskService, times(1)).getAllTasks();
     }
 
     @Test
-    void shouldGetAllTasks() throws Exception {
-        Task task = new Task();
-        task.setId(1L);
-        task.setTitle("Get All API Test");
+    void getTaskById_whenFound_returnsOk() {
+        Task t = new Task();
+        t.setId(1L);
+        t.setTitle("Found");
 
-        when(taskService.getAllTasks()).thenReturn(Collections.singletonList(task));
+        when(taskService.getTaskById(1L)).thenReturn(Optional.of(t));
 
-        mockMvc.perform(get("/api/tasks"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Get All API Test"));
+        ResponseEntity<Task> resp = taskController.getTaskById(1L);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        Task body = Objects.requireNonNull(resp.getBody(), "Response body should not be null when task is found");
+        assertEquals("Found", body.getTitle());
+        verify(taskService, times(1)).getTaskById(1L);
     }
 
     @Test
-    void shouldGetTaskById() throws Exception {
-        Task task = new Task();
-        task.setId(1L);
-        task.setTitle("Get By ID Test");
+    void getTaskById_whenNotFound_returnsNotFound() {
+        when(taskService.getTaskById(2L)).thenReturn(Optional.empty());
 
-        when(taskService.getTaskById(1L)).thenReturn(Optional.of(task));
+        ResponseEntity<Task> resp = taskController.getTaskById(2L);
 
-        mockMvc.perform(get("/api/tasks/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Get By ID Test"));
+        assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+        assertNull(resp.getBody(), "Response body should be null when not found");
+        verify(taskService, times(1)).getTaskById(2L);
+    }
+
+    @Test
+    void updateTask_returnsOkWithUpdatedTask() {
+        Task in = new Task();
+        in.setTitle("In");
+
+        Task updated = new Task();
+        updated.setId(1L);
+        updated.setTitle("Updated");
+
+        when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(updated);
+
+        ResponseEntity<Task> resp = taskController.updateTask(1L, in);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        Task body = Objects.requireNonNull(resp.getBody(), "Response body should not be null after update");
+        assertEquals("Updated", body.getTitle());
+        verify(taskService, times(1)).updateTask(eq(1L), any(Task.class));
+    }
+
+    @Test
+    void deleteTask_returnsNoContent() {
+        doNothing().when(taskService).deleteTask(1L);
+
+        ResponseEntity<Void> resp = taskController.deleteTask(1L);
+
+        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
+        assertNull(resp.getBody(), "No content responses have null body");
+        verify(taskService, times(1)).deleteTask(1L);
     }
 }
