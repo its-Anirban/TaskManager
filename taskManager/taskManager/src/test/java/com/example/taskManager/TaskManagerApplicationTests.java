@@ -1,27 +1,22 @@
 package com.example.taskManager;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+@SpringBootTest
 class TaskManagerApplicationTest {
 
     @Test
-    void mainMethod_runsWithoutError() {
+    void contextLoadsSuccessfully() {
         assertDoesNotThrow(() -> {
-            // run the main() directly → covers "start(args)" line
-            TaskManagerApplication.main(new String[]{});
+            // Context loading verification
         });
     }
 
     @Test
-    void startMethod_runsAndClosesContext() {
-        assertDoesNotThrow(() -> {
-            System.setProperty("server.port", "0"); // random port
-            ConfigurableApplicationContext ctx = TaskManagerApplication.start(new String[]{});
-            ctx.close();
-            System.clearProperty("server.port");
-        });
+    void applicationStartsWithoutError() {
+        assertDoesNotThrow(() -> TaskManagerApplication.main(new String[]{}));
     }
 }
