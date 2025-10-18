@@ -1,7 +1,9 @@
-package com.example.taskManager.services;
+package com.example.taskManager.integration.services;
 
 import com.example.taskManager.model.Task;
 import com.example.taskManager.repository.TaskRepository;
+import com.example.taskManager.services.TaskService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class TaskServiceTest {
+class TaskServiceIT {
 
     @Autowired
     private TaskService taskService;

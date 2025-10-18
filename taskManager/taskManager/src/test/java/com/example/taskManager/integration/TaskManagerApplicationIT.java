@@ -1,7 +1,9 @@
-package com.example.taskManager;
+package com.example.taskManager.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.example.taskManager.TaskManagerApplication;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 

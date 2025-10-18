@@ -1,4 +1,4 @@
-package com.example.taskManager.Exception;
+package com.example.taskManager.integration.Exception;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class GlobalExceptionHandlerTest {
+class GlobalExceptionHandlerIT {
 
     @Autowired private MockMvc mockMvc;
 

@@ -1,4 +1,4 @@
-package com.example.taskManager.controller;
+package com.example.taskManager.integration.controller;
 
 import com.example.taskManager.model.Task;
 import com.example.taskManager.repository.TaskRepository;
@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class TaskControllerTest {
+class TaskControllerIT {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private TaskRepository taskRepository;
