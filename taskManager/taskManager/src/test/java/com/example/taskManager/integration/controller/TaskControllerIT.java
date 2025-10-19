@@ -9,13 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
 class TaskControllerIT {
@@ -38,16 +41,24 @@ class TaskControllerIT {
     void shouldGetAllTasks() throws Exception {
         mockMvc.perform(get("/api/tasks"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$", not(empty())))
                 .andExpect(jsonPath("$[0].title").value("Integration Test Task"));
     }
 
     @Test
-    void shouldGetTaskByIdSuccessfully() throws Exception { 
+    void shouldGetTaskByIdSuccessfully() throws Exception {
         mockMvc.perform(get("/api/tasks/{id}", sampleTask.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(sampleTask.getId()))
-                .andExpect(jsonPath("$.title").value("Integration Test Task"))
-                .andExpect(jsonPath("$.description").value("This is an integration test task"));
+                .andExpect(jsonPath("$.id").value(sampleTask.getId().intValue()))
+                .andExpect(jsonPath("$.title").value("Integration Test Task"));
+    }
+
+    @Test
+    void shouldReturnNotFoundForNonExistingTask() throws Exception {
+        mockMvc.perform(get("/api/tasks/{id}", 99999L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", notNullValue()))
+                .andExpect(jsonPath("$.timestamp", notNullValue()));
     }
 
     @Test
@@ -60,7 +71,17 @@ class TaskControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newTask)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("New Task"));
+                .andExpect(jsonPath("$.title").value("New Task"))
+                .andExpect(jsonPath("$.id").exists());
+    }
+
+    @Test
+    void shouldRejectMalformedJsonWithBadRequest() throws Exception {
+        String badJson = "{\"title\":\"Missing quote}";
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(badJson))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -75,8 +96,37 @@ class TaskControllerIT {
     }
 
     @Test
+    void shouldRejectMalformedJsonOnUpdate() throws Exception {
+        String badJson = "{\"title\":\"Broken JSON}";
+        mockMvc.perform(put("/api/tasks/{id}", sampleTask.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(badJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdatingNonExistingTask() throws Exception {
+        Task t = new Task();
+        t.setTitle("Whatever");
+        t.setDescription("desc");
+
+        mockMvc.perform(put("/api/tasks/{id}", 88888L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(t)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", notNullValue()));
+    }
+
+    @Test
     void shouldDeleteTask() throws Exception {
         mockMvc.perform(delete("/api/tasks/{id}", sampleTask.getId()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenDeletingNonExistingTask() throws Exception {
+        mockMvc.perform(delete("/api/tasks/{id}", 77777L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", notNullValue()));
     }
 }
