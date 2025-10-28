@@ -2,7 +2,6 @@ package com.example.taskManager.integration;
 
 import com.example.taskManager.TaskManagerApplication;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.core.userdetails.User;

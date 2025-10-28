@@ -1,7 +1,6 @@
 package com.example.taskManager.unit.security;
 
 import com.example.taskManager.security.RestAuthenticationEntryPoint;
-import org.springframework.security.core.AuthenticationException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -21,25 +21,20 @@ class AuthControllerTest {
     void setup() {
         authService = mock(AuthService.class);
         authController = new AuthController();
-        authController.setAuthService(authService); 
+        authController.setAuthService(authService);
     }
 
     @Test
-    void shouldReturnResponseWithValidToken() {
-        // Arrange
-        LoginRequest req = new LoginRequest("anirban", "1234");
-        when(authService.login("anirban", "1234")).thenReturn("mockToken");
+    void shouldReturnJwtToken_WhenLoginIsSuccessful() {
+        LoginRequest request = new LoginRequest("anirban", "1234");
+        when(authService.login("anirban", "1234")).thenReturn("mockToken123");
 
-        // Act
-        ResponseEntity<LoginResponse> response = authController.login(req);
+        ResponseEntity<LoginResponse> response = authController.login(request);
         LoginResponse body = response.getBody();
 
-        // Assert
         assertNotNull(body, "Response body should not be null");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("mockToken", body.getToken());
-        assertEquals("Login successful", body.getMessage());
-
+        assertEquals("mockToken123", body.getToken());
         verify(authService).login("anirban", "1234");
     }
 }

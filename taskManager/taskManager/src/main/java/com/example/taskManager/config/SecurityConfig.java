@@ -36,7 +36,7 @@ public class SecurityConfig {
                 // Define which endpoints are public and which are protected
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/**",         // login/logout APIs
+                                "/api/auth/**",         // login/logout APIs
                                 "/h2-console/**",   // H2 DB console
                                 "/error"            // allow Spring default error page
                         ).permitAll()
